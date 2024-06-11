@@ -9,6 +9,5 @@ import starter.gameLoop
 @OptIn(ExperimentalJsExport::class)
 @JsExport
 fun loop() {
-    console.log("hello from kotlin 2.0")
     gameLoop()
 }

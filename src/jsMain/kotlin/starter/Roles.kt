@@ -1,6 +1,18 @@
 package starter
 
-import screeps.api.*
+import screeps.api.Creep
+import screeps.api.ERR_NOT_IN_RANGE
+import screeps.api.FIND_MY_CONSTRUCTION_SITES
+import screeps.api.FIND_MY_STRUCTURES
+import screeps.api.FIND_SOURCES
+import screeps.api.Game
+import screeps.api.RESOURCE_ENERGY
+import screeps.api.Room
+import screeps.api.STRUCTURE_EXTENSION
+import screeps.api.STRUCTURE_SPAWN
+import screeps.api.StoreOwner
+import screeps.api.compareTo
+import screeps.api.get
 import screeps.api.structures.StructureController
 
 
@@ -12,16 +24,22 @@ enum class Role {
 }
 
 fun Creep.upgrade(controller: StructureController) {
-
-    if (store[RESOURCE_ENERGY] == 0) {
+    if (!memory.building && store[RESOURCE_ENERGY] < store.getCapacity(RESOURCE_ENERGY)) {
         val sources = room.find(FIND_SOURCES)
         if (harvest(sources[0]) == ERR_NOT_IN_RANGE) {
             moveTo(sources[0].pos)
         }
-    } else {
-        if (upgradeController(controller) == ERR_NOT_IN_RANGE) {
-            moveTo(controller.pos)
-        }
+        return
+    }
+
+    if (memory.building && store[RESOURCE_ENERGY] == 0) {
+        memory.building = false
+        return
+    }
+
+    memory.building = true
+    if (upgradeController(controller) == ERR_NOT_IN_RANGE) {
+        moveTo(controller.pos)
     }
 }
 
@@ -77,6 +95,8 @@ fun Creep.harvest(fromRoom: Room = this.room, toRoom: Room = this.room) {
             if (transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                 moveTo(targets[0].pos)
             }
+        } else {
+            moveTo(Game.spawns["Spawn1"]!!.pos) // TODO: fix
         }
     }
 }

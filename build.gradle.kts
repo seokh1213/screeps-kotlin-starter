@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalDistributionDsl
 import java.net.URI
 import java.net.http.HttpClient
@@ -43,6 +44,10 @@ kotlin {
         }
     }
     js {
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        compilerOptions {
+            target.set("es2015")
+        }
 
         browser {
             @OptIn(ExperimentalDistributionDsl::class)
@@ -62,9 +67,6 @@ kotlin {
 
     }
 }
-
-
-
 
 tasks.register("deploy") {
     group = "screeps"

@@ -1,55 +1,45 @@
 package starter
 
 
-import screeps.api.*
+import screeps.api.BODYPART_COST
+import screeps.api.BodyPartConstant
+import screeps.api.CARRY
+import screeps.api.Creep
+import screeps.api.CreepMemory
+import screeps.api.ERR_BUSY
+import screeps.api.ERR_NOT_ENOUGH_ENERGY
+import screeps.api.FIND_CREEPS
+import screeps.api.FIND_MY_CONSTRUCTION_SITES
+import screeps.api.Game
+import screeps.api.MOVE
+import screeps.api.OK
+import screeps.api.WORK
+import screeps.api.component1
+import screeps.api.component2
+import screeps.api.get
+import screeps.api.iterator
+import screeps.api.options
 import screeps.api.structures.StructureSpawn
+import screeps.api.values
 import screeps.utils.unsafe.jsObject
 
 fun gameLoop() {
     val mainSpawn: StructureSpawn = Game.spawns.values.firstOrNull() ?: return
 
-    // just an example of how to use room memory
     mainSpawn.room.memory.numberOfCreeps = mainSpawn.room.find(FIND_CREEPS).count()
 
-    //make sure we have at least some creeps
-    spawnCreeps(Game.creeps.values, mainSpawn)
-
-    // build a few extensions so we can have 550 energy
-    val controller = mainSpawn.room.controller
-    if (controller != null && controller.level >= 2) {
-        when (controller.room.find(FIND_MY_STRUCTURES).count { it.structureType == STRUCTURE_EXTENSION }) {
-            0 -> controller.room.createConstructionSite(29, 27, STRUCTURE_EXTENSION)
-            1 -> controller.room.createConstructionSite(28, 27, STRUCTURE_EXTENSION)
-            2 -> controller.room.createConstructionSite(27, 27, STRUCTURE_EXTENSION)
-            3 -> controller.room.createConstructionSite(26, 27, STRUCTURE_EXTENSION)
-            4 -> controller.room.createConstructionSite(25, 27, STRUCTURE_EXTENSION)
-            5 -> controller.room.createConstructionSite(24, 27, STRUCTURE_EXTENSION)
-            6 -> controller.room.createConstructionSite(23, 27, STRUCTURE_EXTENSION)
-        }
-    }
-
-    //spawn a big creep if we have plenty of energy
-    for ((_, room) in Game.rooms) {
-        if (room.energyAvailable >= 550) {
-            mainSpawn.spawnCreep(
-                    arrayOf(
-                            WORK,
-                            WORK,
-                            WORK,
-                            WORK,
-                            CARRY,
-                            MOVE,
-                            MOVE
-                    ),
-                    "HarvesterBig_${Game.time}",
-                    options {
-                        memory = jsObject<CreepMemory> {
-                            this.role = Role.HARVESTER
-                        }
-                    }
-            )
-            console.log("hurray!")
-        }
+    if (Game.creeps.values.count { it.memory.role == Role.HARVESTER } < 2) {
+        val newName = "Harvester${Game.time}"
+        console.log("Spawning new harvester: $newName")
+        mainSpawn.spawnCreep(arrayOf(WORK, CARRY, MOVE), newName, options {
+            memory = jsObject<CreepMemory> { role = Role.HARVESTER }
+        })
+    } else if (Game.creeps.values.count { it.memory.role == Role.UPGRADER } < 1) {
+        val newName = "Upgrader${Game.time}"
+        console.log("Spawning new upgrader: $newName")
+        mainSpawn.spawnCreep(arrayOf(WORK, CARRY, MOVE), newName, options {
+            memory = jsObject<CreepMemory> { role = Role.UPGRADER }
+        })
     }
 
     for ((_, creep) in Game.creeps) {
@@ -60,12 +50,11 @@ fun gameLoop() {
             else -> creep.pause()
         }
     }
-
 }
 
 private fun spawnCreeps(
-        creeps: Array<Creep>,
-        spawn: StructureSpawn
+    creeps: Array<Creep>,
+    spawn: StructureSpawn
 ) {
 
     val body = arrayOf<BodyPartConstant>(WORK, CARRY, MOVE)

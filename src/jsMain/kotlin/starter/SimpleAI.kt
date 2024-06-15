@@ -1,6 +1,9 @@
 package starter
 
 
+import extension.analyzeRoom
+import extension.availableSources
+import extension.countAccessibleDirections
 import screeps.api.BODYPART_COST
 import screeps.api.BodyPartConstant
 import screeps.api.CARRY
@@ -8,7 +11,6 @@ import screeps.api.Creep
 import screeps.api.CreepMemory
 import screeps.api.ERR_BUSY
 import screeps.api.ERR_NOT_ENOUGH_ENERGY
-import screeps.api.FIND_CREEPS
 import screeps.api.FIND_MY_CONSTRUCTION_SITES
 import screeps.api.Game
 import screeps.api.MOVE
@@ -24,33 +26,49 @@ import screeps.api.values
 import screeps.utils.unsafe.jsObject
 
 fun gameLoop() {
-    val mainSpawn: StructureSpawn = Game.spawns.values.firstOrNull() ?: return
+    // 1-room code
+    // init
+    val spawn = (Game.spawns.values.firstOrNull() ?: return)
+    val room = spawn.room.also { it.analyzeRoom() }
+    val sourceList = room.memory.availableSources.flatMap { source ->
+        List(source.countAccessibleDirections()) { source }
+    }
+    val upgraderCreepMaxCount = sourceList.size
 
-    mainSpawn.room.memory.numberOfCreeps = mainSpawn.room.find(FIND_CREEPS).count()
-
+    // spawn
     if (Game.creeps.values.count { it.memory.role == Role.HARVESTER } < 2) {
         val newName = "Harvester${Game.time}"
-        console.log("Spawning new harvester: $newName")
-        mainSpawn.spawnCreep(arrayOf(WORK, CARRY, MOVE), newName, options {
+        val result = spawn.spawnCreep(arrayOf(WORK, CARRY, MOVE), newName, options {
             memory = jsObject<CreepMemory> { role = Role.HARVESTER }
         })
-    } else if (Game.creeps.values.count { it.memory.role == Role.UPGRADER } < 1) {
+
+        if (result == OK) {
+            console.log("Spawning new harvester: $newName")
+        }
+    } else if (Game.creeps.values.count { it.memory.role == Role.UPGRADER } < upgraderCreepMaxCount) {
         val newName = "Upgrader${Game.time}"
-        console.log("Spawning new upgrader: $newName")
-        mainSpawn.spawnCreep(arrayOf(WORK, CARRY, MOVE), newName, options {
+        val result = spawn.spawnCreep(arrayOf(WORK, CARRY, MOVE), newName, options {
             memory = jsObject<CreepMemory> { role = Role.UPGRADER }
         })
+
+        if (result == OK) {
+            console.log("Spawning new upgrader: $newName")
+        }
     }
 
+    // creep
+    var upgraderIndex = 0
     for ((_, creep) in Game.creeps) {
         when (creep.memory.role) {
             Role.HARVESTER -> creep.harvest()
             Role.BUILDER -> creep.build()
-            Role.UPGRADER -> creep.upgrade(mainSpawn.room.controller!!)
-            else -> creep.pause()
+            Role.UPGRADER -> {
+                creep.upgrade(spawn.room.controller!!, sourceList[upgraderIndex++])
+            }
         }
     }
 }
+
 
 private fun spawnCreeps(
     creeps: Array<Creep>,

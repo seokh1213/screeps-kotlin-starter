@@ -1,4 +1,0 @@
-package `object`
-
-class SpawnManager {
-}

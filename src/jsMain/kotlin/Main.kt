@@ -1,9 +1,7 @@
-import starter.gameLoop
-import starter.garbageCollect
+import starter.GameEngine
 
 @OptIn(ExperimentalJsExport::class)
 @JsExport
-fun loop() {
-    gameLoop()
-    garbageCollect()
+fun loop() { // screeps entry
+    GameEngine.loop()
 }

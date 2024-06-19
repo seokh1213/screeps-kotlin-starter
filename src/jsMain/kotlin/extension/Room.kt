@@ -9,6 +9,7 @@ import screeps.utils.memory.memory
 import screeps.utils.memory.memoryWithSerializer
 import kotlin.reflect.KMutableProperty0
 
+var RoomMemory.blueprintBuilt: Boolean by memory { false }
 var RoomMemory.availableSourceCount: Int by memory { -1 }
 var RoomMemory.availableSources: List<Source> by memoryWithSerializer(
     { emptyList() },

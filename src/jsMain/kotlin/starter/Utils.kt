@@ -2,6 +2,7 @@ package starter
 
 import screeps.api.Game
 import screeps.api.Memory
+import screeps.api.MutableRecord
 import screeps.api.component1
 import screeps.api.component2
 import screeps.api.iterator
@@ -11,7 +12,14 @@ fun garbageCollect() {
     for ((name, _) in Memory.creeps) {
         if (name !in Game.creeps) {
             console.log("Clearing non-existing creep memory for $name")
-            Memory.deleteCreeps(name)
+            Memory.creeps.delete(name)
+        }
+    }
+
+    for ((name, _) in Memory.rooms) {
+        if (name !in Game.rooms) {
+            console.log("Clearing non-existing room memory for $name")
+            Memory.rooms.delete(name)
         }
     }
 }
@@ -22,8 +30,8 @@ external class Reflect {
     }
 }
 
-fun Memory.deleteCreeps(name: String) {
-    if (name in creeps) {
-        Reflect.deleteProperty(this.creeps, name)
+fun <K, V> MutableRecord<K, V>.delete(name: String) {
+    if (name in this) {
+        Reflect.deleteProperty(this, name)
     }
 }

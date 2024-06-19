@@ -3,7 +3,14 @@ package starter
 
 import extension.analyzeRoom
 import extension.availableSources
+import extension.blueprintBuilt
 import extension.countAccessibleDirections
+import extension.getCornerDirections
+import extension.getDirections
+import extension.isAccessible
+import extension.x
+import extension.y
+import model.MAX_CONTAINER_COUNT
 import screeps.api.BODYPART_COST
 import screeps.api.BodyPartConstant
 import screeps.api.CARRY
@@ -15,6 +22,9 @@ import screeps.api.FIND_MY_CONSTRUCTION_SITES
 import screeps.api.Game
 import screeps.api.MOVE
 import screeps.api.OK
+import screeps.api.STRUCTURE_CONTAINER
+import screeps.api.STRUCTURE_EXTENSION
+import screeps.api.STRUCTURE_ROAD
 import screeps.api.WORK
 import screeps.api.component1
 import screeps.api.component2
@@ -30,13 +40,14 @@ fun gameLoop() {
     // init
     val spawn = (Game.spawns.values.firstOrNull() ?: return)
     val room = spawn.room.also { it.analyzeRoom() }
+    val terrain = room.getTerrain()
     val sourceList = room.memory.availableSources.flatMap { source ->
         List(source.countAccessibleDirections()) { source }
     }
     val upgraderCreepMaxCount = sourceList.size
 
     // spawn
-    if (Game.creeps.values.count { it.memory.role == Role.HARVESTER } < 2) {
+    if (Game.creeps.values.count { it.memory.role == Role.HARVESTER } < 4) {
         val newName = "Harvester${Game.time}"
         val result = spawn.spawnCreep(arrayOf(WORK, CARRY, MOVE), newName, options {
             memory = jsObject<CreepMemory> { role = Role.HARVESTER }
@@ -54,6 +65,57 @@ fun gameLoop() {
         if (result == OK) {
             console.log("Spawning new upgrader: $newName")
         }
+    } else if (Game.creeps.values.count { it.memory.role == Role.BUILDER } < 4) {
+        val newName = "Builder${Game.time}"
+        val result = spawn.spawnCreep(arrayOf(WORK, CARRY, MOVE), newName, options {
+            memory = jsObject<CreepMemory> { role = Role.BUILDER }
+        })
+
+        if (result == OK) {
+            console.log("Spawning new upgrader: $newName")
+        }
+    }
+
+    // build blueprint
+    // TODO: should check CPU
+    // TODO: max construction site count: 100
+    if (!room.memory.blueprintBuilt) {
+        // extension
+        val cornerDirections = spawn.pos.getCornerDirections()
+        spawn.pos.getDirections()
+            .filter { (x, y) -> terrain[x, y].isAccessible() && (x to y) !in cornerDirections }
+            .forEach { (x, y) ->
+                room.createConstructionSite(x, y, STRUCTURE_EXTENSION)
+            }
+
+        // container (storage) : 5
+        spawn.pos.getDirections(3)
+            .filter { (x, y) -> terrain[x, y].isAccessible() }
+            .take(MAX_CONTAINER_COUNT)
+            .forEach { (x, y) ->
+                room.createConstructionSite(x, y, STRUCTURE_CONTAINER)
+            }
+
+        // road
+        val roadDirections = spawn.pos.getDirections(2)
+
+        roadDirections.filter { (x, y) -> terrain[x, y].isAccessible() }
+            .forEach { vector ->
+                room.createConstructionSite(vector.x, vector.y, STRUCTURE_ROAD)
+            }
+
+        sourceList.forEach { source ->
+            val shortestPath = roadDirections.map { vector ->
+                source.pos.findPathTo(vector.x, vector.y, opts = jsObject { ignoreCreeps = true })
+            }.minByOrNull { it.size }
+
+            shortestPath?.forEach {
+                room.createConstructionSite(it.x, it.y, STRUCTURE_ROAD)
+            }
+        }
+
+
+        room.memory.blueprintBuilt = true
     }
 
     // creep

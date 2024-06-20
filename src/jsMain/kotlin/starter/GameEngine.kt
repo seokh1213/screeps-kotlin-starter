@@ -1,5 +1,7 @@
 package starter
 
+import `object`.manager.LogicChain
+import `object`.manager.ResourceManager
 import `object`.manager.RoadManager
 import `object`.manager.ScenarioManager
 import `object`.manager.SpawnManager
@@ -7,17 +9,16 @@ import `object`.manager.WorkManager
 import `object`.utils.GarbageCollector
 
 object GameEngine {
-    private val managers = listOf(
-        ScenarioManager,
-        SpawnManager,
-        RoadManager,
-        WorkManager
+    private val prepareActions = LogicChain.of(
+        ScenarioManager::prepare,
+        ResourceManager::prepare,
+        SpawnManager::prepare,
+        RoadManager::prepare,
+        WorkManager::prepare
     )
 
     fun loop() {
-        managers.forEach { it.prepare() }
-        managers.forEach { it.action() }
-        managers.forEach { it.finish() }
+
 
         GarbageCollector.garbageCollect()
     }

@@ -1,18 +1,8 @@
 package `object`.manager
 
-object ScenarioManager : Manager {
-    private var stage: Int = 0
-
-    fun getCurrentStage(): Int {
-        return stage
-    }
-
-    fun measureDevelopmentStage() {
-        // TODO
-    }
-
+object ResourceManager: Manager {
     override fun prepare(context: Manager.Context): Manager.Context {
-        measureDevelopmentStage()
+        // TODO
         return context
     }
 

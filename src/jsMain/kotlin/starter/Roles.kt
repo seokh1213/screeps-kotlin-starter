@@ -16,6 +16,7 @@ import screeps.api.Source
 import screeps.api.StoreOwner
 import screeps.api.compareTo
 import screeps.api.get
+import screeps.api.structures.Structure
 import screeps.api.structures.StructureController
 
 
@@ -56,13 +57,18 @@ fun Creep.build(assignedRoom: Room = this.room) {
     }
 
     if (memory.building) {
-        val repairTargets = assignedRoom.find(FIND_STRUCTURES)
-            .filter { it.structureType== STRUCTURE_ROAD && it.hits < it.hitsMax }
-            .sortedBy { it.hits }
+        val repairTarget = (if (memory.repairTargetId.isNotEmpty()) Game.getObjectById<Structure>(memory.repairTargetId) else null)
+            ?.takeIf{it.hits < it.hitsMax}
+            ?: assignedRoom.find(FIND_STRUCTURES)
+                .filter { it.structureType == STRUCTURE_ROAD && it.hits < it.hitsMax }
+                .minByOrNull { it.hits }
+                ?.also {
+                    memory.repairTargetId = it.id
+                }
 
-        if (repairTargets.isNotEmpty()) {
-            if (repair(repairTargets[0]) == ERR_NOT_IN_RANGE) {
-                moveTo(repairTargets[0].pos)
+        if (repairTarget != null) {
+            if (repair(repairTarget) == ERR_NOT_IN_RANGE) {
+                moveTo(repairTarget.pos)
             }
         } else {
             val targets = assignedRoom.find(FIND_MY_CONSTRUCTION_SITES)

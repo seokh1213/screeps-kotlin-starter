@@ -54,11 +54,23 @@ fun Creep.build(assignedRoom: Room = this.room) {
     }
 
     if (memory.building) {
+        val repairTargets = assignedRoom.find(FIND_MY_STRUCTURES)
+            .filter { it.hits < it.hitsMax }
+            .sortedBy { it.hits }
+
+        if (repairTargets.isNotEmpty()) {
+            if (repair(repairTargets[0]) == ERR_NOT_IN_RANGE) {
+                moveTo(repairTargets[0].pos)
+            }
+            return
+        }
+
         val targets = assignedRoom.find(FIND_MY_CONSTRUCTION_SITES)
         if (targets.isNotEmpty()) {
             if (build(targets[0]) == ERR_NOT_IN_RANGE) {
                 moveTo(targets[0].pos)
             }
+            return
         }
     } else {
         val sources = room.find(FIND_SOURCES)

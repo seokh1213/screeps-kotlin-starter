@@ -46,6 +46,10 @@ fun Creep.upgrade(controller: StructureController, source: Source) {
     }
 }
 
+fun Structure.isCriticalDamaged(): Boolean {
+    return hits / hitsMax < 0.5
+}
+
 fun Creep.build(assignedRoom: Room = this.room) {
     if (memory.building && store[RESOURCE_ENERGY] == 0) {
         memory.building = false
@@ -58,9 +62,9 @@ fun Creep.build(assignedRoom: Room = this.room) {
 
     if (memory.building) {
         val repairTarget = (if (memory.repairTargetId.isNotEmpty()) Game.getObjectById<Structure>(memory.repairTargetId) else null)
-            ?.takeIf{it.hits < it.hitsMax}
+            ?.takeIf{ it.structureType == STRUCTURE_ROAD && it.isCriticalDamaged()}
             ?: assignedRoom.find(FIND_STRUCTURES)
-                .filter { it.structureType == STRUCTURE_ROAD && it.hits < it.hitsMax }
+                .filter { it.structureType == STRUCTURE_ROAD && it.isCriticalDamaged() }
                 .minByOrNull { it.hits }
                 ?.also {
                     memory.repairTargetId = it.id

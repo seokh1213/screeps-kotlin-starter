@@ -47,11 +47,11 @@ fun Creep.upgrade(controller: StructureController, source: Source) {
 }
 
 fun Structure.isCriticalDamaged(): Boolean {
-    return (hits / hitsMax) < 0.5
+    return (hits.toDouble() / hitsMax) < 0.5
 }
 
 fun Structure.isDamaged(): Boolean {
-    return (hits / hitsMax) < 0.8
+    return (hits.toDouble() / hitsMax) < 0.8
 }
 
 fun Creep.build(assignedRoom: Room = this.room) {
@@ -74,15 +74,16 @@ fun Creep.build(assignedRoom: Room = this.room) {
                     memory.repairTargetId = it.id
                 }
 
-        if (repairTarget != null) {
+        if (repairTarget != null && repairTarget.isDamaged()) {
             if (repair(repairTarget) == ERR_NOT_IN_RANGE) {
                 moveTo(repairTarget.pos)
             }
         } else {
-            val targets = assignedRoom.find(FIND_MY_CONSTRUCTION_SITES)
-            if (targets.isNotEmpty()) {
-                if (build(targets[0]) == ERR_NOT_IN_RANGE) {
-                    moveTo(targets[0].pos)
+            val target = assignedRoom.find(FIND_MY_CONSTRUCTION_SITES)
+                .minByOrNull { it.pos.getRangeTo(pos) }
+            if (target != null) {
+                if (build(target) == ERR_NOT_IN_RANGE) {
+                    moveTo(target.pos)
                 }
             } else {
                 moveTo(Game.spawns["Spawn1"]!!)

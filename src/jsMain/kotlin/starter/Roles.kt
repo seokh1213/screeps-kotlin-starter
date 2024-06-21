@@ -47,7 +47,7 @@ fun Creep.upgrade(controller: StructureController, source: Source) {
 }
 
 fun Structure.isCriticalDamaged(): Boolean {
-    return hits / hitsMax < 0.5
+    return (hits / hitsMax) < 0.5
 }
 
 fun Creep.build(assignedRoom: Room = this.room) {

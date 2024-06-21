@@ -80,6 +80,8 @@ fun Creep.build(assignedRoom: Room = this.room) {
                 if (build(targets[0]) == ERR_NOT_IN_RANGE) {
                     moveTo(targets[0].pos)
                 }
+            } else {
+                moveTo(Game.spawns["Spawn1"]!!)
             }
         }
     } else {

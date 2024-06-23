@@ -10,6 +10,7 @@ import java.util.*
 plugins {
     kotlin("multiplatform") version "2.0.0"
     kotlin("plugin.js-plain-objects") version "2.0.0"
+    kotlin("plugin.serialization") version "2.0.0"
 }
 
 repositories {
@@ -34,6 +35,7 @@ kotlin {
         jsMain {
             dependencies {
                 implementation("io.github.exav:screeps-kotlin-types:2.1.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-js:1.7.0")
             }
 
         }

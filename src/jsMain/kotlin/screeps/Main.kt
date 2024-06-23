@@ -1,7 +1,11 @@
-import starter.GameEngine
+package screeps
+
+import screeps.game.GameEngine
+
 
 @OptIn(ExperimentalJsExport::class)
 @JsExport
 fun loop() { // screeps entry
-    GameEngine.loop()
+    GameEngine.run()
 }
+

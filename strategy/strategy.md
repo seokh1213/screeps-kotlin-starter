@@ -2,12 +2,15 @@
 
 ## Strategy
 
-### Prioritize upgrading the controller level
+### 1단계: 일꾼을 최대 값 만큼 뽑기
 
-1. count way to access the sources
-    - 1
-2.
+* 최대 값의 기준은 source의 주변 8방향중에 노출되어 있는 개수의 총합
+    * 추후 이동 속도 등등 고려
+* 언제까지 1단계? 일꾼 최대 개수 도달시
 
-# 1. 1-Room
+### 2단계: (1단계의 조건을 충족)
 
-# 1. 2-Room
+* 혹여나 일꾼이 줄어들어 1단계가 미충족하더라도 이미 2단계를 왔기 때문에 일꾼은 추가 생산하여 보충
+* spawn 주변 range 2에 해당되게 네모낳게 길 만들기 (construction site)
+* 각 source들과 네모난 길의 가장 가까운 경로를 하나 정해 construction site 만들기
+* 일꾼들은 1단계 조건을 충족한다면, 도로를 짓는것을 최우선으로 작업

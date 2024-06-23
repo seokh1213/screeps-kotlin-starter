@@ -3,9 +3,13 @@ package screeps.strategy
 import screeps.api.CARRY
 import screeps.api.Creep
 import screeps.api.CreepMemory
+import screeps.api.ERR_FULL
+import screeps.api.ERR_NOT_IN_RANGE
 import screeps.api.FIND_MY_CREEPS
 import screeps.api.Game
 import screeps.api.MOVE
+import screeps.api.OK
+import screeps.api.RESOURCE_ENERGY
 import screeps.api.Room
 import screeps.api.ScreepsReturnCode
 import screeps.api.Source
@@ -14,10 +18,14 @@ import screeps.api.options
 import screeps.api.structures.StructureSpawn
 import screeps.creeps.role.Role
 import screeps.game.extension.countAccessibleTiles
-import screeps.game.extension.findAvailableSources
+import screeps.game.extension.findAvailableSourcesExcludingSourceKeepers
 import screeps.game.extension.getAccessibleAdjacentTiles
+import screeps.game.extension.getAdjacentTiles
+import screeps.game.extension.isAccessible
 import screeps.game.extension.spawn
 import screeps.game.extension.whenSuccess
+import screeps.game.extension.x
+import screeps.game.extension.y
 import screeps.game.role
 import screeps.game.taskId
 import screeps.taks.BuildTask
@@ -64,10 +72,10 @@ object Strategy0 : Strategy {
         // harvest source
         return TaskQueue {
             tasks {
-                room.findAvailableSources().sortedBy { it.id }
+                room.findAvailableSourcesExcludingSourceKeepers()
                     .flatMap { source ->
                         source.getAccessibleAdjacentTiles().withIndex()
-                            .map { (index, _) -> HarvestTask(source.id + index, source) }
+                            .map { (index, vector) -> HarvestTask(source.id + "_" + vector.x + vector.y, source) }
                     }
             }
         }
@@ -86,7 +94,7 @@ object Strategy0 : Strategy {
     }
 
     private fun Room.calculateMaxWorkers(): Int {
-        return findAvailableSources().sumOf(Source::countAccessibleTiles)
+        return findAvailableSourcesExcludingSourceKeepers().sumOf(Source::countAccessibleTiles)
     }
 
     private fun Room.findWorkers() = find(FIND_MY_CREEPS).filter { it.memory.role == Role.WORKER }
@@ -100,48 +108,37 @@ private fun StructureSpawn.spawnWorker(name: String? = null): ScreepsReturnCode 
 
 
 private fun HarvestTask.run(creep: Creep) {
-    if (creep.id == "2e6e2829b36123a2ce02e583") {
-        console.log(creep.id, creep.store, creep.store.getFreeCapacity())
-    }
-
     if (creep.store.getFreeCapacity() > 0) {
         val harvestResult = creep.harvest(source)
-        if (harvestResult == screeps.api.OK) {
+        if (harvestResult == OK) {
             return
         }
 
-        if (harvestResult == screeps.api.ERR_NOT_IN_RANGE) {
+        if (harvestResult == ERR_NOT_IN_RANGE) {
             creep.moveTo(source)
             return
         }
     } else {
         val spawn = creep.room.spawn ?: return
-        val transferResult = creep.transfer(spawn, screeps.api.RESOURCE_ENERGY)
-        if (transferResult == screeps.api.OK) {
+        val transferResult = creep.transfer(spawn, RESOURCE_ENERGY)
+        if (transferResult == OK) {
             return
         }
 
-        if (transferResult == screeps.api.ERR_NOT_IN_RANGE) {
+        if (transferResult == ERR_NOT_IN_RANGE) {
             creep.moveTo(spawn)
             return
         }
-//
-//            if (transferResult == screeps.api.ERR_FULL) {
-//                // wait until spawn is not full
-//                val spawnRange = 2
-//                val spawnPosition = spawn.pos
-//                val spawnX = spawnPosition.x
-//                val spawnY = spawnPosition.y
-//                val targetX = creep.pos.x
-//                val targetY = creep.pos.y
-//                val dx = abs(spawnX - targetX)
-//                val dy = abs(spawnY - targetY)
-//                if (dx <= spawnRange && dy <= spawnRange) {
-//                    return
-//                }
-//                creep.moveTo(spawn)
-//                return
-//            }
+
+        if (transferResult == ERR_FULL) {
+            // wait until spawn is not full
+            val terrain = creep.room.getTerrain()
+            val vector = spawn.pos.getAdjacentTiles(2).firstOrNull { vector ->
+                terrain[vector.x, vector.y].isAccessible()
+            } ?: return
+
+            creep.moveTo(vector.x, vector.y)
+        }
     }
 }
 

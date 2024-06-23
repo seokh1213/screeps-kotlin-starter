@@ -12,17 +12,23 @@ object StrategyManager {
     )
 
     fun executeStrategy(room: Room) {
-        strategies[room.determineStage()].execute(room)
+        val stage = room.determineStage()
+        strategies[stage].execute(room)
     }
 
     private fun Room.determineStage(): Stage {
         val previousStage = memory.stage
-        val currentStage = strategies.subList(previousStage).withIndex()
+        val currentStage = strategies.withIndex()
             .firstOrNull { (_, strategy) -> !strategy.condition(this) }
-            ?.let { (index, _) -> previousStage + index }
+            ?.let { (index, _) -> index }
             ?: previousStage
-        return currentStage.also { memory.stage = it }
+
+        return currentStage.also {
+            if (previousStage != currentStage) {
+                memory.stage = currentStage
+                console.log("Stage changed from $previousStage to $currentStage")
+            }
+        }
     }
 }
 
-private fun <T> List<T>.subList(startIndex: Int) = subList(startIndex, size)

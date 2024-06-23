@@ -5,7 +5,7 @@ import screeps.api.Room
 
 object Strategy1 : Strategy {
     override fun condition(room: Room): Boolean {
-        TODO()
+        return false
     }
 
     override fun execute(room: Room) {

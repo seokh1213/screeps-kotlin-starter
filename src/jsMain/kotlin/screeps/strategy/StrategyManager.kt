@@ -19,7 +19,7 @@ object StrategyManager {
         val previousStage = memory.stage
         val currentStage = strategies.subList(previousStage).withIndex()
             .firstOrNull { (_, strategy) -> !strategy.condition(this) }
-            ?.let { (index, _) -> return previousStage + index }
+            ?.let { (index, _) -> previousStage + index }
             ?: previousStage
         return currentStage.also { memory.stage = it }
     }

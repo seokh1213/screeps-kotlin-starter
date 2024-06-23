@@ -9,6 +9,7 @@ import screeps.serializer.SourceSerializer
 import screeps.serializer.StructureSerializer
 import screeps.utils.PriorityItem
 import screeps.utils.PriorityQueue
+import screeps.utils.Queue
 
 enum class TaskType(val priority: Int) {
     HARVEST(1),
@@ -17,7 +18,9 @@ enum class TaskType(val priority: Int) {
 
 @Serializable
 sealed interface Task : PriorityItem {
+    val taskId: String
     val taskType: TaskType
+    override val priority: Int get() = taskType.priority
 
     companion object {
         fun serialize(task: Task): String {
@@ -35,19 +38,29 @@ sealed interface Task : PriorityItem {
 }
 
 @Serializable
-data class BuildTask(@Serializable(with = StructureSerializer::class) val target: Structure) : Task {
-    override val priority: Int = TaskType.BUILD.priority
+data class BuildTask(
+    override val taskId: String,
+    @Serializable(with = StructureSerializer::class) val target: Structure
+) : Task {
     override val taskType: TaskType = TaskType.BUILD
 }
 
 @Serializable
-data class HarvestTask(@Serializable(with = SourceSerializer::class) val source: Source) : Task {
-    override val priority: Int = TaskType.HARVEST.priority
+data class HarvestTask(
+    override val taskId: String,
+    @Serializable(with = SourceSerializer::class) val source: Source
+) : Task {
     override val taskType: TaskType = TaskType.HARVEST
 }
 
-class TaskQueue() : PriorityQueue<Task>() {
-    constructor(vararg items: Collection<Task>) : this() {
-        items.forEach { enqueueAll(it) }
+class TaskQueue : Queue<Task> by PriorityQueue() {
+    fun tasks(block: () -> List<Task>) {
+        enqueueAll(block())
+    }
+
+    companion object {
+        operator fun invoke(block: TaskQueue.() -> Unit): TaskQueue {
+            return TaskQueue().apply(block)
+        }
     }
 }

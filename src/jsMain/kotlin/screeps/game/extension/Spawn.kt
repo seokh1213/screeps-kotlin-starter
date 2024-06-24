@@ -9,7 +9,6 @@ import screeps.api.get
 import screeps.api.options
 import screeps.api.structures.StructureExtension
 import screeps.api.structures.StructureSpawn
-import screeps.creeps.role.Role
 import screeps.game.CreepMemoryBuilder
 import screeps.taks.SpawnTask
 
@@ -33,5 +32,5 @@ fun StructureSpawn.canSpawn(body: Array<BodyPartConstant>): Boolean {
 
 
 fun StructureSpawn.spawnCreep(context: SpawnTask.SpawnContext): ScreepsReturnCode {
-    return spawnCreep(context.body, context.name, options { memory = CreepMemoryBuilder { role = Role.WORKER } })
+    return spawnCreep(context.body, context.name, options { memory = CreepMemoryBuilder { role = context.role } })
 }

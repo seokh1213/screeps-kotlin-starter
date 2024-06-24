@@ -54,27 +54,7 @@ data class SpawnTask(
 ) : Task {
     override val taskType: TaskType = TaskType.SPAWN
 
-    data class SpawnContext(val name: String, val body: Array<BodyPartConstant>, val role: Role) {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class.js != other::class.js) return false
-
-            other as SpawnContext
-
-            if (name != other.name) return false
-            if (!body.contentEquals(other.body)) return false
-            if (role != other.role) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = name.hashCode()
-            result = 31 * result + body.contentHashCode()
-            result = 31 * result + role.hashCode()
-            return result
-        }
-    }
+    class SpawnContext(val name: String, val body: Array<BodyPartConstant>, val role: Role)
 }
 
 @Serializable

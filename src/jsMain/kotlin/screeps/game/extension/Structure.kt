@@ -1,0 +1,2 @@
+package screeps.game.extension
+

@@ -1,4 +1,4 @@
-package screeps.strategy
+package screeps.strategy.strategy0
 
 import screeps.api.BodyPartConstant
 import screeps.api.CARRY
@@ -28,6 +28,7 @@ import screeps.game.extension.x
 import screeps.game.extension.y
 import screeps.game.role
 import screeps.game.taskId
+import screeps.strategy.Strategy
 import screeps.taks.HarvestTask
 import screeps.taks.SpawnTask
 import screeps.taks.TaskQueue

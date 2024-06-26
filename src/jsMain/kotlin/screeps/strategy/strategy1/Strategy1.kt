@@ -1,6 +1,8 @@
-package screeps.strategy
+package screeps.strategy.strategy1
 
 import screeps.api.Room
+import screeps.strategy.Strategy
+import screeps.strategy.strategy0.Strategy0
 
 
 object Strategy1 : Strategy {

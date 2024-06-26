@@ -2,6 +2,8 @@ package screeps.strategy
 
 import screeps.api.Room
 import screeps.game.stage
+import screeps.strategy.strategy0.Strategy0
+import screeps.strategy.strategy1.Strategy1
 
 typealias Stage = Int
 

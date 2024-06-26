@@ -20,19 +20,14 @@ fun Room.findAvailableSources() = find(FIND_SOURCES).filter { source -> source.e
 
 
 fun Room.findSourceKeeperSources(): List<Source> {
-    val sourceKeeperSources = mutableListOf<Source>()
     val sourceKeepersLairs = findSourceKeepersLairs()
-    val sources = find(FIND_SOURCES)
+    val sources = findAvailableSources()
 
-    sourceKeepersLairs.forEach { lair ->
-        sources.forEach { source ->
-            if (lair.pos.inRangeTo(source.pos, 5)) {
-                sourceKeeperSources.add(source)
-            }
+    return sourceKeepersLairs.flatMap { lair ->
+        sources.filter { source ->
+            lair.pos.inRangeTo(source.pos, 5)
         }
     }
-
-    return sourceKeeperSources
 }
 
 
